@@ -1376,7 +1376,7 @@
             "context": "Modified context: Deadlines for submission are set by the course. Ensure you adhere to them to avoid penalties for late submission."
         },
         {
-            "question": " What is the main goal of this coursework?",
+            "question": " ",
             "answer": "The main goal is to develop a deep learning project that demonstrates the application of advanced deep learning techniques. This involves preparing a project proposal, writing a technical report, implementing code, and presenting the findings.",
             "context": "Modified context: This is related to the overall objectives of the coursework, where students are expected to implement and demonstrate their understanding of deep learning models."
         },
@@ -1461,7 +1461,7 @@
             "context": "Modified context: Deadlines for submission are set by the course. Ensure you adhere to them to avoid penalties for late submission."
         },
         {
-            "question": " What is the main goal of this coursework?",
+            "question": " ",
             "answer": "The main goal is to develop a deep learning project that demonstrates the application of advanced deep learning techniques. This involves preparing a project proposal, writing a technical report, implementing code, and presenting the findings.",
             "context": "Modified context: This is related to the overall objectives of the coursework, where students are expected to implement and demonstrate their understanding of deep learning models."
         },
@@ -1499,9 +1499,9 @@
             "question": " What are the key components of the methodology section?",
             "answer": "The methodology section should describe the deep learning model, the dataset used, preprocessing techniques, augmentation methods, and the training and evaluation process.",
             "context": "Modified context: This is critical for explaining how the project will be executed and what methods will be used to solve the problem."
-        }
+        },
         {
-        "question": "What is the main goal of this coursework?",
+        "question": "",
         "answer": "The main goal is to develop a deep learning project that demonstrates the application of advanced deep learning techniques. This involves preparing a project proposal, writing a technical report, implementing code, and presenting the findings.",
         "context": "This is related to the overall objectives of the coursework, where students are expected to implement and demonstrate their understanding of deep learning models."
       },
