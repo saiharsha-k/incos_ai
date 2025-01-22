@@ -1,10 +1,9 @@
-!pip install --upgrade pip
 streamlit
 pyngrok
 pinecone-client
 sentence-transformers
 huggingface-hub
 tensorflow
-torch==2.0.0
+torch
 transformers
 tf-keras
