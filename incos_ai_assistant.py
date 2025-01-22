@@ -3,6 +3,7 @@ from sentence_transformers import SentenceTransformer
 from pinecone import Pinecone
 from transformers import AutoTokenizer, AutoModelForQuestionAnswering, pipeline
 import numpy as np
+import torch
 
 # Streamlit page configuration
 st.set_page_config(
