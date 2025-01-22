@@ -1,9 +1,10 @@
 import streamlit as st
-from langchain.embeddings import HuggingFaceEmbeddings
-from langchain.vectorstores import Pinecone
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.vectorstores import Pinecone
 from langchain.llms import HuggingFacePipeline
 from langchain.chains import RetrievalQA
 from transformers import pipeline
+import pinecone
 
 st.set_page_config(
     page_title="INCOS AI Assistant",
@@ -17,10 +18,13 @@ def initialize_qa_chain():
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     
     # Initialize Pinecone
-    pinecone_index = Pinecone.from_existing_index(
-        index_name="corpus-embeddings",
-        embedding=embeddings,
-        api_key="pcsk_2uxcgr_7EXRxqcQDew4CqgB2B9Q1M9EgwqpPCw4HAL7wjcLgHSN7g6ToZoAnEtBvjsHA3J"
+    pinecone.init(api_key="pcsk_2uxcgr_7EXRxqcQDew4CqgB2B9Q1M9EgwqpPCw4HAL7wjcLgHSN7g6ToZoAnEtBvjsHA3J")
+    index = pinecone.Index("corpus-embeddings")
+    
+    vectorstore = Pinecone(
+        index,
+        embeddings.embed_query,
+        "text"  # Name of the text field in your metadata
     )
     
     # Initialize QA model
@@ -31,7 +35,7 @@ def initialize_qa_chain():
     qa_chain = RetrievalQA.from_chain_type(
         llm=llm,
         chain_type="stuff",
-        retriever=pinecone_index.as_retriever()
+        retriever=vectorstore.as_retriever()
     )
     
     return qa_chain
