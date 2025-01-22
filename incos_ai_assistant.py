@@ -37,7 +37,7 @@ def retrieve_context(query_embedding, pinecone_index, top_k=3):
 
 # Function to generate answer using the fine-tuned model
 def generate_answer(question, context, tokenizer, model):
-    context_text = " ".join([match["metadata"]["text"] for match in context])
+    context_text = " ".join([match["metadata"]["content"] for match in context])
     if not context_text:
         return "No relevant context found. Please try rephrasing your question."
 
@@ -77,7 +77,7 @@ if user_question:
     if retrieved_contexts:
         st.write("Relevant contexts found:")
         for idx, match in enumerate(retrieved_contexts):
-            st.write(f"Context {idx + 1}: {match['metadata']['text']}")
+            st.write(f"Context {idx + 1}: {match['metadata']['content']}")
     else:
         st.write("No relevant contexts found.")
 
