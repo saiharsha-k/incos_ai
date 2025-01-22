@@ -1,9 +1,8 @@
 import streamlit as st
-from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain.llms import HuggingFacePipeline
-from langchain.chains import RetrievalQA
 from transformers import pipeline
 from pinecone import Pinecone
+import numpy as np
+from langchain import LangChain
 
 st.set_page_config(
     page_title="INCOS AI Assistant",
@@ -12,48 +11,45 @@ st.set_page_config(
 )
 
 @st.cache_resource
-def initialize_qa_chain():
-    # Initialize embeddings
-    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-
-    
+def initialize_pinecone():
     api_key = "pcsk_2uxcgr_7EXRxqcQDew4CqgB2B9Q1M9EgwqpPCw4HAL7wjcLgHSN7g6ToZoAnEtBvjsHA3J"
     pc = Pinecone(api_key=api_key)
     index = pc.Index("corpus-embeddings")
-    
-    vectorstore = Pinecone(
-        index,
-        embeddings.embed_query,
-        "text"  # Name of the text field in your metadata
-    )
-    
-    # Initialize QA model
-    qa_pipeline = pipeline("question-answering", model="Sai-Harsha-k/incosai_qa_finetuned_model")
-    llm = HuggingFacePipeline(pipeline=qa_pipeline)
-    
-    # Create retrieval QA chain 
-    qa_chain = RetrievalQA.from_chain_type(
-        llm=llm,
-        chain_type="stuff",
-        retriever=vectorstore.as_retriever()
-    )
-    
-    return qa_chain
+    return index
 
-# Streamlit App Interface
+@st.cache_resource
+def initialize_models():
+    embedding_model = pipeline("feature-extraction", model="sentence-transformers/all-MiniLM-L6-v2")
+    qa_model = pipeline("question-answering", model="Sai-Harsha-k/incosai_qa_finetuned_model")
+    return embedding_model, qa_model
+
+def get_embeddings(text: str, model) -> np.ndarray:
+    embeddings = model(text, padding=True, truncation=True, max_length=512)
+    return np.mean(embeddings[0], axis=0)
+
+def search_pinecone(query_embedding: np.ndarray, index, top_k: int = 3):
+    return index.query(vector=query_embedding.tolist(), top_k=top_k, include_metadata=True)
+
+def generate_answer(question: str, context, qa_pipeline):
+    context_text = " ".join([doc["metadata"]["text"] for doc in context["matches"]])
+    result = qa_pipeline(question=question, context=context_text)
+    return result['answer']
+
+# LangChain setup
+lc = LangChain()
+
 st.title("INCOS AI Assistant")
 st.write("How can I help you with your coursework?")
 
-# User Input
 user_question = st.text_input("Ask me anything related to your coursework!")
 
 if user_question:
     try:
-        qa_chain = initialize_qa_chain()
-        answer = qa_chain.run(user_question)
-        
-        st.write("### Answer:")
+        pinecone_index = initialize_pinecone()
+        embedding_model, qa_model = initialize_models()
+        query_embedding = get_embeddings(user_question, embedding_model)
+        context = search_pinecone(query_embedding, pinecone_index)
+        answer = generate_answer(user_question, context, qa_model)
         st.write(answer)
-        
     except Exception as e:
-        st.error(f"An error occurred: {str(e)}")
+        st.error(f"An error occurred: {e}")
