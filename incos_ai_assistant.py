@@ -1,35 +1,90 @@
 import streamlit as st
-from transformers import pipeline
-from pinecone import Pinecone
+from sentence_transformers import SentenceTransformer
+import pinecone
+from transformers import AutoTokenizer, AutoModelForQuestionAnswering, pipeline
 import numpy as np
-from langchain.llms import HuggingFaceHub
-from langchain.embeddings import HuggingFaceEmbeddings
-from langchain.chains import RetrievalQA
-from langchain.vectorstores import Pinecone as LangchainPinecone
 
+# Streamlit page configuration
+st.set_page_config(
+    page_title="RAG QA Assistant",
+    page_icon="🕵️",
+    layout="centered"
+)
+
+# Initialize Hugging Face finetuned model and tokenizer
 @st.cache_resource
-def initialize_models():
-    embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    qa_model = HuggingFaceHub(repo_id="Sai-Harsha-k/incosai_qa_finetuned_model", model_kwargs={"temperature": 0.5, "max_length": 512})
-    return embedding_model, qa_model
-    
+def initialize_finetuned_model():
+    model_name = "Sai-Harsha-k/incosai_qa_finetuned_model"  # Replace with your Hugging Face model name
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForQuestionAnswering.from_pretrained(model_name)
+    return tokenizer, model
+
+# Initialize Pinecone
 @st.cache_resource
 def initialize_pinecone():
-    api_key = "pcsk_2uxcgr_7EXRxqcQDew4CqgB2B9Q1M9EgwqpPCw4HAL7wjcLgHSN7g6ToZoAnEtBvjsHA3J"
-    pc = Pinecone(api_key=api_key)
+    pc = Pinecone(api_key="")
     index = pc.Index("corpus-embeddings")
-    return LangchainPinecone(index, embedding_model, "text")
+    return index
 
-def generate_answer(question: str, vectorstore, qa_model):
-    retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
-    qa_chain = RetrievalQA.from_chain_type(llm=qa_model, chain_type="stuff", retriever=retriever)
-    return qa_chain.run(question)
+# Function to retrieve context from Pinecone
+def retrieve_context(query_embedding, pinecone_index, top_k=3):
+    results = pinecone_index.query(
+        vector=query_embedding.tolist(),
+        top_k=top_k,
+        include_metadata=True
+    )
+    return results["matches"] if "matches" in results else []
+
+# Function to generate answer using the fine-tuned model
+def generate_answer(question, context, tokenizer, model):
+    context_text = " ".join([match["metadata"]["text"] for match in context])
+    if not context_text:
+        return "No relevant context found. Please try rephrasing your question."
+
+    inputs = tokenizer(
+        question, context_text, return_tensors="pt", padding=True, truncation=True
+    )
+    with torch.no_grad():
+        outputs = model(**inputs)
+        answer_start = outputs.start_logits.argmax()
+        answer_end = outputs.end_logits.argmax() + 1
+        answer = tokenizer.convert_tokens_to_string(
+            tokenizer.convert_ids_to_tokens(inputs.input_ids[0][answer_start:answer_end])
+        )
+    return answer
+
+# Main application
+st.title("RAG QA Assistant")
+st.write("Ask a question and get answers from your custom dataset using a Retrieval-Augmented Generation (RAG) pipeline.")
+
+# Initialize models and Pinecone
+tokenizer, model = initialize_finetuned_model()
+pinecone_index = initialize_pinecone()
+
+# Input for user question
+user_question = st.text_input("Enter your question:")
 
 if user_question:
-    try:
-        embedding_model, qa_model = initialize_models()
-        vectorstore = initialize_pinecone()
-        answer = generate_answer(user_question, vectorstore, qa_model)
-        st.write(answer)
-    except Exception as e:
-        st.error(f"An error occurred: {e}")
+    # Generate embeddings for the user question using SentenceTransformer
+    sentence_transformer = SentenceTransformer("all-MiniLM-L6-v2")
+    query_embedding = sentence_transformer.encode(user_question)
+
+    # Retrieve relevant contexts from Pinecone
+    st.write("Searching for relevant context...")
+    retrieved_contexts = retrieve_context(query_embedding, pinecone_index)
+
+    # Display retrieved contexts (optional for debugging)
+    if retrieved_contexts:
+        st.write("Relevant contexts found:")
+        for idx, match in enumerate(retrieved_contexts):
+            st.write(f"Context {idx + 1}: {match['metadata']['text']}")
+    else:
+        st.write("No relevant contexts found.")
+
+    # Generate an answer to the user's question
+    st.write("Generating answer...")
+    answer = generate_answer(user_question, retrieved_contexts, tokenizer, model)
+
+    # Display the answer
+    st.subheader("Answer:")
+    st.write(answer)
