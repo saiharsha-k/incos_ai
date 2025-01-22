@@ -6,7 +6,7 @@ import numpy as np
 
 # Streamlit page configuration
 st.set_page_config(
-    page_title="RAG QA Assistant",
+    page_title="Incos AI Assistant",
     page_icon="🕵️",
     layout="centered"
 )
@@ -22,7 +22,7 @@ def initialize_finetuned_model():
 # Initialize Pinecone
 @st.cache_resource
 def initialize_pinecone():
-    pc = Pinecone(api_key="")
+    pc = Pinecone(api_key="pcsk_2uxcgr_7EXRxqcQDew4CqgB2B9Q1M9EgwqpPCw4HAL7wjcLgHSN7g6ToZoAnEtBvjsHA3J")
     index = pc.Index("corpus-embeddings")
     return index
 
@@ -54,8 +54,8 @@ def generate_answer(question, context, tokenizer, model):
     return answer
 
 # Main application
-st.title("RAG QA Assistant")
-st.write("Ask a question and get answers from your custom dataset using a Retrieval-Augmented Generation (RAG) pipeline.")
+st.title("Incos AI Assistant")
+st.write("Ask a question that I can help you with!")
 
 # Initialize models and Pinecone
 tokenizer, model = initialize_finetuned_model()
