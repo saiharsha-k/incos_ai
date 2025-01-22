@@ -73,19 +73,19 @@ if user_question:
     query_embedding = sentence_transformer.encode(user_question)
 
     # Retrieve relevant contexts from Pinecone
-    st.write("Searching for relevant context...")
+    #st.write("Searching for relevant context...")
     retrieved_contexts = retrieve_context(query_embedding, pinecone_index)
 
     # Display retrieved contexts (optional for debugging)
     if retrieved_contexts:
         st.write("Relevant contexts found:")
-        for idx, match in enumerate(retrieved_contexts):
-            st.write(f"Context {idx + 1}: {match['metadata']['content']}")
+        #for idx, match in enumerate(retrieved_contexts):
+         #   st.write(f"Context {idx + 1}: {match['metadata']['content']}")
     else:
-        st.write("No relevant contexts found.")
+        st.write("No relevant contexts found. Ask something else")
 
     # Generate an answer to the user's question
-    st.write("Generating answer...")
+    st.write("Your answer is here...")
     answer = generate_answer(user_question, retrieved_contexts, tokenizer, model)
 
     # Display the answer
