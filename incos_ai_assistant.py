@@ -1,10 +1,9 @@
 import streamlit as st
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_community.vectorstores import Pinecone
 from langchain.llms import HuggingFacePipeline
 from langchain.chains import RetrievalQA
 from transformers import pipeline
-import pinecone
+from pinecone import Pinecone
 
 st.set_page_config(
     page_title="INCOS AI Assistant",
@@ -16,6 +15,7 @@ st.set_page_config(
 def initialize_qa_chain():
     # Initialize embeddings
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+
     
     pc = Pinecone(api_key="pcsk_2uxcgr_7EXRxqcQDew4CqgB2B9Q1M9EgwqpPCw4HAL7wjcLgHSN7g6ToZoAnEtBvjsHA3J")
     index = pc.Index("corpus-embeddings")
