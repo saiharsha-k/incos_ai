@@ -40,10 +40,12 @@ def generate_answer(question, context, tokenizer, model):
     context_text = " ".join([match["metadata"]["content"] for match in context])
     if not context_text:
         return "No relevant context found. Please try rephrasing your question."
+    
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = model.to(device)
 
-    inputs = tokenizer(
-        question, context_text, return_tensors="pt", padding=True, truncation=True
-    )
+    inputs = tokenizer(question, context_text, return_tensors="pt", padding=True, truncation=True).to(device)
+    
     with torch.no_grad():
         outputs = model(**inputs)
         answer_start = outputs.start_logits.argmax()
