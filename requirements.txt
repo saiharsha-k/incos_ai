@@ -3,3 +3,7 @@ pyngrok
 pinecone-client
 sentence-transformers
 huggingface-hub
+tensorflow
+torch
+transformers
+huggingface-transformers
