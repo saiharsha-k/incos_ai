@@ -4,6 +4,6 @@ pinecone-client
 sentence-transformers
 huggingface-hub
 tensorflow
-torch
+torch==2.0.0
 transformers
 tf-keras
