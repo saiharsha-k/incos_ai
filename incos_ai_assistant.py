@@ -66,7 +66,7 @@ pinecone_index = initialize_pinecone()
 
 # Input for user question
 user_question = st.text_input("Enter your question:")
-st.write(""What is the main goal of the coursework?, What deep learning techniques can be used?, Can you suggest presentation techniques?")
+st.write("What is the main goal of the coursework?, What deep learning techniques can be used?, Can you suggest presentation techniques?")
 
 if user_question:
     # Generate embeddings for the user question using SentenceTransformer
