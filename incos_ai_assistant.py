@@ -17,9 +17,8 @@ def initialize_qa_chain():
     # Initialize embeddings
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     
-    # Initialize Pinecone
-    pinecone.init(api_key="pcsk_2uxcgr_7EXRxqcQDew4CqgB2B9Q1M9EgwqpPCw4HAL7wjcLgHSN7g6ToZoAnEtBvjsHA3J")
-    index = pinecone.Index("corpus-embeddings")
+    pc = PineconeClient(api_key="pcsk_2uxcgr_7EXRxqcQDew4CqgB2B9Q1M9EgwqpPCw4HAL7wjcLgHSN7g6ToZoAnEtBvjsHA3J")
+    index = pc.Index("corpus-embeddings")
     
     vectorstore = Pinecone(
         index,
