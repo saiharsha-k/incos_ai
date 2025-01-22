@@ -6,5 +6,4 @@ huggingface-hub
 tensorflow
 torch
 transformers
-keras==2.16.0
 tf-keras
