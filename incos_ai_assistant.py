@@ -1,3 +1,4 @@
+import streamlit as st
 from transformers import pipeline
 from pinecone import Pinecone
 import numpy as np
