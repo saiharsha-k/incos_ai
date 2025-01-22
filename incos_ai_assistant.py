@@ -2,7 +2,7 @@ import streamlit as st
 from transformers import pipeline
 from pinecone import Pinecone
 import numpy as np
-from langchain import LangChain
+from langchain.community import LangChain
 
 st.set_page_config(
     page_title="INCOS AI Assistant",
