@@ -1,3 +1,4 @@
+!pip install pinecone-client sentence-transformers huggingface-hub streamlit pyngrok
 import streamlit as st
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from pinecone import Pinecone
