@@ -1,17 +1,13 @@
-numpy
 streamlit==1.41.1
-langchain
-langchain-community
-langchain
 pyngrok==7.2.3
-pinecone-client==5.0.1
 sentence-transformers==2.2.2
 huggingface-hub==0.20.2
 tensorflow==2.18.0
 transformers==4.36.2
 tf-keras
-torch==2.2.2
-
+numpy<2.0
+torch>=2.0
+pinecone-client
 
 
 
