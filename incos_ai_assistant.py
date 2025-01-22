@@ -29,10 +29,14 @@ def initialize_models():
 
 # Utility function to generate embeddings
 def get_embeddings(text: str, tokenizer, model) -> np.ndarray:
+    """Generate embeddings for input text."""
     inputs = tokenizer(text, return_tensors="pt", padding=True, truncation=True)
     with torch.no_grad():
-        outputs = model.encoder(**inputs)
-    return outputs.last_hidden_state.mean(dim=1).numpy()
+        # Pass inputs through the model to get hidden states
+        outputs = model(**inputs)
+        # Use the hidden states from the last layer to compute embeddings
+        embeddings = outputs.hidden_states[-1].mean(dim=1).numpy()
+    return embeddings
 
 # Search Pinecone for relevant documents
 def search_pinecone(query_embedding: np.ndarray, index, top_k: int = 3):
