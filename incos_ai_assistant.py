@@ -1,7 +1,9 @@
 import streamlit as st
+from langchain.embeddings import HuggingFaceEmbeddings
+from langchain.vectorstores import Pinecone
+from langchain.llms import HuggingFacePipeline
+from langchain.chains import RetrievalQA
 from transformers import pipeline
-from pinecone import Pinecone
-import numpy as np
 
 st.set_page_config(
     page_title="INCOS AI Assistant",
@@ -10,41 +12,29 @@ st.set_page_config(
 )
 
 @st.cache_resource
-def initialize_pinecone():
-    api_key = "pcsk_2uxcgr_7EXRxqcQDew4CqgB2B9Q1M9EgwqpPCw4HAL7wjcLgHSN7g6ToZoAnEtBvjsHA3J"
-    pc = Pinecone(api_key=api_key)
-    index = pc.Index("corpus-embeddings")
-    return index
-
-@st.cache_resource
-def initialize_models():
-    # Feature extraction pipeline for embeddings
-    embedding_model = pipeline("feature-extraction", 
-                             model="sentence-transformers/all-MiniLM-L6-v2")
+def initialize_qa_chain():
+    # Initialize embeddings
+    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     
-    # QA pipeline
-    qa_model = pipeline("question-answering", 
-                       model="Sai-Harsha-k/incosai_qa_finetuned_model")
-    
-    return embedding_model, qa_model
-
-def get_embeddings(text: str, model) -> np.ndarray:
-    """Generate embeddings for input text."""
-    embeddings = model(text, padding=True, truncation=True, max_length=512)
-    # Take mean of token embeddings
-    return np.mean(embeddings[0], axis=0)
-
-def search_pinecone(query_embedding: np.ndarray, index, top_k: int = 3):
-    return index.query(
-        vector=query_embedding.tolist(),
-        top_k=top_k,
-        include_metadata=True
+    # Initialize Pinecone
+    pinecone_index = Pinecone.from_existing_index(
+        index_name="corpus-embeddings",
+        embedding=embeddings,
+        api_key="pcsk_2uxcgr_7EXRxqcQDew4CqgB2B9Q1M9EgwqpPCw4HAL7wjcLgHSN7g6ToZoAnEtBvjsHA3J"
     )
-
-def generate_answer(question: str, context, qa_pipeline):
-    context_text = " ".join([doc["metadata"]["text"] for doc in context["matches"]])
-    result = qa_pipeline(question=question, context=context_text)
-    return result['answer']
+    
+    # Initialize QA model
+    qa_pipeline = pipeline("question-answering", model="Sai-Harsha-k/incosai_qa_finetuned_model")
+    llm = HuggingFacePipeline(pipeline=qa_pipeline)
+    
+    # Create retrieval QA chain 
+    qa_chain = RetrievalQA.from_chain_type(
+        llm=llm,
+        chain_type="stuff",
+        retriever=pinecone_index.as_retriever()
+    )
+    
+    return qa_chain
 
 # Streamlit App Interface
 st.title("INCOS AI Assistant")
@@ -55,20 +45,9 @@ user_question = st.text_input("Ask me anything related to your coursework!")
 
 if user_question:
     try:
-        # Initialize resources
-        pinecone_index = initialize_pinecone()
-        embedding_model, qa_model = initialize_models()
+        qa_chain = initialize_qa_chain()
+        answer = qa_chain.run(user_question)
         
-        # Generate embeddings
-        query_embedding = get_embeddings(user_question, embedding_model)
-        
-        # Retrieve relevant documents
-        results = search_pinecone(query_embedding, pinecone_index)
-        
-        # Generate answer
-        answer = generate_answer(user_question, results, qa_model)
-        
-        # Display the answer
         st.write("### Answer:")
         st.write(answer)
         
