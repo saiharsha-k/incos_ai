@@ -1,5 +1,5 @@
 import streamlit as st
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+from transformers import AutoTokenizer, AutoModelForQuestionAnswering
 from pinecone import Pinecone
 import torch
 import numpy as np
@@ -21,10 +21,10 @@ def initialize_pinecone():
 
 @st.cache_resource
 def initialize_models():
-    # Load the fine-tuned Hugging Face model and tokenizer
+    # Replace with your Hugging Face model name
     model_name = "Sai-Harsha-k/incosai_qa_finetuned_model"
     tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+    model = AutoModelForQuestionAnswering.from_pretrained(model_name)
     return tokenizer, model
 
 # Utility function to generate embeddings
